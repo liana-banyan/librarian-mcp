@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "librarian-mcp"
+version = "0.1.0"
+description = "Pre-curated canonical memory + prose/code provenance for any AI coding client. MCP-native."
+readme = "README.md"
+license = "AGPL-3.0-or-later"
+requires-python = ">=3.10"
+authors = [
+    { name = "Jonathan Jones", email = "hello@liana-banyan.com" },
+]
+keywords = ["mcp", "ai", "context", "provenance", "canonical", "memory", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+dependencies = [
+    "mcp>=1.6.0",
+]
+
+[project.optional-dependencies]
+opus = ["anthropic>=0.40.0"]
+yaml = ["pyyaml>=6.0"]
+dev = ["pytest>=8.0", "ruff>=0.4"]
+all = ["anthropic>=0.40.0", "pyyaml>=6.0"]
+
+[project.urls]
+Homepage = "https://github.com/liana-banyan/librarian-mcp"
+Documentation = "https://github.com/liana-banyan/librarian-mcp/tree/main/docs"
+Repository = "https://github.com/liana-banyan/librarian-mcp"
+Issues = "https://github.com/liana-banyan/librarian-mcp/issues"
+
+[project.scripts]
+librarian-mcp = "librarian_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/librarian_mcp"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]

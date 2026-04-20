@@ -1,0 +1,47 @@
+                    GNU AFFERO GENERAL PUBLIC LICENSE
+                       Version 3, 19 November 2007
+
+ Copyright (C) 2026 Liana Banyan Corporation
+ Everyone is permitted to copy and distribute verbatim copies of this
+ license document, but changing it is not allowed.
+
+The terms of the GNU Affero General Public License, version 3, apply to
+this software in full. The full text of AGPL-3.0 is available at:
+
+    https://www.gnu.org/licenses/agpl-3.0.txt
+
+---
+
+ADDITIONAL GRANT — Pledged Commons Tier
+
+For use by any organization qualifying as a nonprofit, cooperative, academic
+institution, or public-service entity (as evidenced by an IRS-verified EIN
+under 501(c), or the international equivalent), Liana Banyan Corporation
+grants the further right to use this software for its organizational purposes
+under the terms of the Cooperative Defensive Patent Pledge, available at:
+
+    https://liana-banyan.com/pledge
+
+The Pledged Commons grant includes, in perpetuity:
+  - Free use of the full feature set
+  - No revocation based on organization size, output, or revenue
+  - No patent sword from Liana Banyan Corporation against the organization
+    for practice of the patented architecture covered by this software
+
+The Pledged Commons grant is irrevocable by Liana Banyan Corporation except
+in the case of demonstrated material breach of the Pledge itself.
+
+---
+
+COMMERCIAL LICENSE
+
+Organizations not qualifying for the Pledged Commons tier who wish to use
+this software under terms other than AGPL-3.0 (including but not limited to
+proprietary integration, closed-source distribution, or SaaS offerings that
+would otherwise trigger AGPL §13 network-service requirements) may obtain
+a commercial license by contacting enterprise@liana-banyan.com.
+
+Commercial licenses are priced at Cost+20% of operating expense, consistent
+with Liana Banyan Corporation's canonical margin philosophy. Commercial
+licensees receive dedicated support, SLA, and contribute operationally to
+the sustainability of the Pledged Commons tier.
