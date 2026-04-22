@@ -1,7 +1,19 @@
 # Librarian MCP
 
+```bash
+pip install librarian-mcp
+```
+
+[![PyPI version](https://img.shields.io/pypi/v/librarian-mcp.svg)](https://pypi.org/project/librarian-mcp/)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
+[![Pledged Commons](https://img.shields.io/badge/Pledged-Commons-green.svg)](https://liana-banyan.com/pledge)
+[![CI](https://github.com/liana-banyan/librarian-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/liana-banyan/librarian-mcp/actions/workflows/ci.yml)
+[![GitHub stars](https://img.shields.io/github/stars/liana-banyan/librarian-mcp.svg?style=social)](https://github.com/liana-banyan/librarian-mcp)
+
 **A real, measured alternative to "bigger context windows."**
 Pre-curated canonical memory + prose/code provenance checking + benchmark metrics, delivered as a [Model Context Protocol](https://modelcontextprotocol.io) server that works across Claude Code, Cursor, VSCode (via Continue), and any MCP-capable client.
+
+**[Try it without installing →](https://librarian.the2ndsecond.com)**
 
 ## What it does
 
@@ -160,6 +172,13 @@ pytest -v                        # test (34 tests)
 - Enterprise: enterprise@liana-banyan.com
 - Press / AI policy / datacenter-alternative questions: press@liana-banyan.com
 - Founder: Jonathan Jones, Founder & General Manager, Liana Banyan Corporation (Wyoming C-Corp)
+
+## Contributing
+
+We welcome contributions — code, corpus preloads, benchmark replications, and research extensions.
+
+- **[BOUNTIES.md](BOUNTIES.md)** — paid bounties for specific contributions, from $25 `good-first-bounty` issues to $500 deep bounties
+- **[BUILDING_TOGETHER.md](BUILDING_TOGETHER.md)** — guide to running, extending, and contributing back upstream
 
 ---
 

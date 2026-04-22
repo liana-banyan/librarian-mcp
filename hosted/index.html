@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Librarian — librarian.the2ndSecond.com</title>
+  <meta name="description" content="Your AI librarian. Pre-curated canonical memory + prose provenance, delivered via MCP. 86.1pp accuracy lift across 8 models, 4 vendors, 1,200 graded calls.">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --green: #3fb950;
+      --red: #f85149;
+      --orange: #d29922;
+      --code-bg: #0d1117;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+    /* Header */
+    header { border-bottom: 1px solid var(--border); padding: 16px 0; }
+    header .container { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .logo { font-size: 1.1rem; font-weight: 600; color: var(--accent); text-decoration: none; }
+    .logo span { color: var(--muted); font-weight: 400; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 0.875rem; margin-left: 20px; transition: color 0.15s; }
+    nav a:hover { color: var(--text); }
+
+    /* Hero */
+    .hero { padding: 80px 0 48px; text-align: center; }
+    .hero h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .chapter-tag { display: inline-block; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 4px 14px; font-size: 0.8rem; color: var(--muted); margin-bottom: 24px; }
+    .hero-subtitle { font-size: 1.15rem; color: var(--muted); max-width: 640px; margin: 0 auto 32px; }
+
+    /* Install block */
+    .install-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; max-width: 440px; margin: 0 auto 16px; text-align: left; position: relative; }
+    .install-block code { font-family: var(--mono); font-size: 0.95rem; color: var(--green); }
+    .install-block .copy-btn { position: absolute; top: 12px; right: 12px; background: var(--border); border: none; border-radius: 4px; padding: 4px 8px; color: var(--muted); cursor: pointer; font-size: 0.75rem; transition: all 0.15s; }
+    .install-block .copy-btn:hover { background: var(--accent); color: var(--bg); }
+    .or-try { font-size: 0.875rem; color: var(--muted); margin-bottom: 48px; }
+    .or-try a { color: var(--accent); text-decoration: none; }
+    .or-try a:hover { text-decoration: underline; }
+
+    /* Personification */
+    .personification { background: var(--surface); border-left: 3px solid var(--accent); padding: 24px 28px; margin: 0 auto 48px; max-width: 720px; border-radius: 0 8px 8px 0; }
+    .personification p { font-size: 1.05rem; color: var(--text); font-style: italic; }
+
+    /* Lead copy */
+    .lead-copy { max-width: 720px; margin: 0 auto 56px; }
+    .lead-copy p { color: var(--muted); font-size: 1rem; line-height: 1.75; }
+
+    /* Section headings */
+    .section-heading { font-size: 1.5rem; font-weight: 600; margin-bottom: 24px; padding-top: 48px; letter-spacing: -0.01em; }
+
+    /* Eyewitness table */
+    .table-wrap { overflow-x: auto; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    thead th { background: var(--surface); border-bottom: 2px solid var(--border); padding: 10px 12px; text-align: left; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    tbody tr:hover { background: rgba(88, 166, 255, 0.04); }
+    .hot { color: var(--green); font-weight: 600; }
+    .cold { color: var(--red); }
+    .delta { color: var(--accent); }
+    .table-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+    .kappa-table { margin-top: 16px; margin-bottom: 48px; }
+    .kappa-table table { max-width: 600px; }
+
+    /* Badges */
+    .badges { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 32px 0; }
+    .badges img { height: 20px; }
+
+    /* Naming axes */
+    .axes-table { margin-bottom: 48px; }
+    .axes-table table { max-width: 600px; margin: 0 auto; }
+    .axes-table th, .axes-table td { text-align: center; }
+
+    /* Playground */
+    .playground { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-bottom: 48px; }
+    .playground h2 { font-size: 1.25rem; margin-bottom: 8px; }
+    .playground p { color: var(--muted); font-size: 0.875rem; margin-bottom: 16px; }
+    .playground select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 0.875rem; margin-bottom: 16px; width: 100%; }
+    .playground button { background: var(--accent); color: var(--bg); border: none; border-radius: 6px; padding: 10px 24px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+    .playground button:hover { background: var(--accent-hover); }
+    .playground button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .playground-output { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; margin-top: 16px; padding: 16px; font-family: var(--mono); font-size: 0.8rem; color: var(--muted); max-height: 400px; overflow: auto; white-space: pre-wrap; display: none; }
+    .playground-output.visible { display: block; }
+    .json-toggle { font-size: 0.8rem; color: var(--accent); cursor: pointer; background: none; border: none; padding: 0; margin-top: 8px; }
+    .json-toggle:hover { text-decoration: underline; }
+    .mcp-json-pane { display: none; background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; margin-top: 8px; padding: 16px; font-family: var(--mono); font-size: 0.75rem; color: var(--orange); max-height: 300px; overflow: auto; white-space: pre-wrap; }
+    .mcp-json-pane.visible { display: block; }
+
+    /* Chapter 2 teaser */
+    .chapter2-teaser { text-align: center; padding: 32px 0; border-top: 1px solid var(--border); margin-top: 48px; }
+    .chapter2-teaser p { color: var(--muted); font-size: 0.95rem; font-style: italic; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 32px 0; margin-top: 48px; }
+    footer .container { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; margin-right: 20px; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { color: var(--muted); font-size: 0.8rem; }
+
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 1.75rem; }
+      .hero-subtitle { font-size: 1rem; }
+      header .container { flex-direction: column; text-align: center; }
+      nav a { margin: 0 10px; }
+      footer .container { flex-direction: column; text-align: center; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <a href="/" class="logo">The Librarian <span>/ the2ndSecond.com</span></a>
+    <nav>
+      <a href="#eyewitness">Results</a>
+      <a href="#install">Install</a>
+      <a href="#playground">Playground</a>
+      <a href="https://github.com/liana-banyan/librarian-mcp">GitHub</a>
+      <a href="https://pypi.org/project/librarian-mcp/">PyPI</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="chapter-tag">Chapter 1: The Librarian &middot; R9 &middot; Romulator 9000 &middot; Paper #48 &middot; v0.2.0</div>
+      <h1>Your AI <em>librarian</em></h1>
+      <p class="hero-subtitle">Not an oracle. Not a search engine. A librarian &mdash; that knows where your stuff is and hands it to the model when asked.</p>
+
+      <div class="install-block" id="install">
+        <code>pip install librarian-mcp</code>
+        <button class="copy-btn" onclick="navigator.clipboard.writeText('pip install librarian-mcp');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)">Copy</button>
+      </div>
+      <p class="or-try">or <a href="#playground">try it without installing</a> &darr;</p>
+    </div>
+  </section>
+
+  <!-- Personification block -->
+  <section>
+    <div class="container">
+      <div class="personification">
+        <p>Your AI librarian. Not an oracle. Not a search engine. A librarian &mdash; that knows where your stuff is and hands it to the model when asked.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lead copy -->
+  <section class="lead-copy">
+    <div class="container">
+      <p>The First and Second Industrial Revolutions centralized production &mdash; big factories, one-size-fits-all. The 2nd Second Industrial Revolution de-centralizes it: 3D printers and local tools let any town make its own things. Your AI librarian does the same for knowledge. Your own library. Your own tool. Run it yourself. Every town its own fab shop &mdash; and its own librarian.</p>
+    </div>
+  </section>
+
+  <!-- Eyewitness table -->
+  <section id="eyewitness">
+    <div class="container">
+      <h2 class="section-heading">The Eyewitness Benchmark</h2>
+      <p class="table-meta">R10 Cross-Vendor Replication &mdash; 8 models &times; 4 vendors &times; 1,200 graded calls &mdash; April 2026 &mdash; Paper #48</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Vendor</th>
+              <th>Model</th>
+              <th>Tier</th>
+              <th>HOT accuracy</th>
+              <th>COLD accuracy</th>
+              <th>&Delta; (HOT&minus;COLD)</th>
+              <th>HOT cost/Q</th>
+              <th>COLD cost/Q</th>
+              <th>HOT p50 latency</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Anthropic</td><td>claude-haiku-4-5</td><td>cheap</td><td class="hot">98.7%</td><td class="cold">5.3%</td><td class="delta">+93.4</td><td>$0.0066</td><td>$0.0009</td><td>3.49s</td></tr>
+            <tr><td>Anthropic</td><td>claude-opus-4-7</td><td>premium</td><td class="hot">98.7%</td><td class="cold">6.7%</td><td class="delta">+92.0</td><td>$0.1272</td><td>$0.0222</td><td>5.87s</td></tr>
+            <tr><td>Perplexity</td><td>sonar-pro</td><td>premium</td><td class="hot">98.0%</td><td class="cold">9.3%</td><td class="delta">+88.7</td><td>$0.0144</td><td>$0.0034</td><td>2.74s</td></tr>
+            <tr><td>Google</td><td>gemini-2.5-flash</td><td>cheap</td><td class="hot">94.7%</td><td class="cold">12.0%</td><td class="delta">+82.7</td><td>$0.0007</td><td>$0.0002</td><td>1.54s</td></tr>
+            <tr><td>Google</td><td>gemini-2.5-pro</td><td>premium</td><td class="hot">94.0%</td><td class="cold">8.7%</td><td class="delta">+85.3</td><td>$0.0061</td><td>$0.0016</td><td>5.41s</td></tr>
+            <tr><td>OpenAI</td><td>gpt-4o</td><td>premium</td><td class="hot">93.3%</td><td class="cold">8.7%</td><td class="delta">+84.6</td><td>$0.0106</td><td>$0.0015</td><td>7.38s</td></tr>
+            <tr><td>Perplexity</td><td>sonar</td><td>cheap</td><td class="hot">92.0%</td><td class="cold">7.3%</td><td class="delta">+84.7</td><td>$0.0041</td><td>$0.0003</td><td>3.14s</td></tr>
+            <tr><td>OpenAI</td><td>gpt-4o-mini</td><td>cheap</td><td class="hot">89.3%</td><td class="cold">11.3%</td><td class="delta">+78.0</td><td>$0.0006</td><td>$0.0001</td><td>1.69s</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="table-meta" style="margin-top:12px"><strong>Mean lift: 86.1 percentage points.</strong> Mean COLD: 8.7%. Mean HOT: 94.8%. Total study cost: ~$18.</p>
+
+      <div class="kappa-table">
+        <p class="table-meta" style="margin-bottom:8px">Inter-Rater Agreement</p>
+        <table>
+          <thead>
+            <tr><th>Check</th><th>&kappa;</th><th>n</th><th>Interpretation</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Haiku vs Opus spot-check</td><td><strong>0.883</strong></td><td>120</td><td>Almost perfect agreement</td></tr>
+            <tr><td>Haiku vs Gemini cross-grader</td><td><strong>0.850</strong></td><td>56</td><td>Almost perfect agreement</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Five naming axes -->
+  <section class="axes-table">
+    <div class="container">
+      <h2 class="section-heading">How to reference this</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Axis</th><th>Value (Chapter 1)</th><th>Audience</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Chapter name</td><td><strong>The Librarian</strong></td><td>Marketing, landing copy</td></tr>
+            <tr><td>R-number</td><td><strong>R9</strong></td><td>HN, Reddit, developer framing</td></tr>
+            <tr><td>Romulator code</td><td><strong>9000</strong></td><td>Researcher / citation / internal</td></tr>
+            <tr><td>Paper number</td><td><strong>#48</strong> Eyewitness</td><td>Academic, press</td></tr>
+            <tr><td>Semver</td><td><strong>v0.2.0</strong></td><td>PyPI mechanical</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Playground -->
+  <section id="playground">
+    <div class="container">
+      <div class="playground">
+        <h2>Try it &mdash; Romulator 9000</h2>
+        <p>Select an intent to load a canonical memory packet from the preload. No install required.</p>
+
+        <select id="intent-select">
+          <option value="">(base) &mdash; R9-v2 preload only (~4,500 tokens)</option>
+          <option value="canonical">canonical &mdash; Base + canonical values + laws (~15,000 tokens)</option>
+          <option value="architecture">architecture &mdash; Base + canonical + Pledge + IP split + Medallion (~20,000 tokens)</option>
+          <option value="founder_voice">founder_voice &mdash; Base + Rhetorical Keystones + Pine Books (~10,000 tokens)</option>
+          <option value="benchmark">benchmark &mdash; Base + R10 results + R9 brief + 75-Q bank (~10,000 tokens)</option>
+          <option value="outreach">outreach &mdash; Base + canonical + Opening Gambit + letter queue (~30,000 tokens)</option>
+          <option value="operational">operational &mdash; Union of outreach + canonical (~30,000 tokens)</option>
+        </select>
+
+        <button id="run-btn" onclick="runPlayground()">Load Memory Packet</button>
+
+        <div id="playground-output" class="playground-output"></div>
+
+        <button id="json-toggle" class="json-toggle" style="display:none" onclick="toggleMcpJson()">See the MCP JSON &mdash; Romulator 9000</button>
+        <div id="mcp-json-pane" class="mcp-json-pane"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chapter 2 teaser -->
+  <section class="chapter2-teaser">
+    <div class="container">
+      <p>Chapter 1: The Librarian is here. Chapter 2 &mdash; Mellon (<em>Speak Friend and Enter</em>) &mdash; multilingual retrieval across 110 languages. Coming soon.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-links">
+      <a href="https://github.com/liana-banyan/librarian-mcp">GitHub</a>
+      <a href="https://pypi.org/project/librarian-mcp/">PyPI</a>
+      <a href="https://github.com/liana-banyan/librarian-mcp/blob/main/BOUNTIES.md">Bounties</a>
+      <a href="https://github.com/liana-banyan/librarian-mcp/blob/main/BUILDING_TOGETHER.md">Building Together</a>
+      <a href="https://liana-banyan.com/pledge">Pledged Commons</a>
+    </div>
+    <div class="footer-copy">
+      &copy; 2026 Liana Banyan Corporation (Wyoming C-Corp) &middot; AGPL-3.0 &middot;
+      <em>"Help each other help ourselves"</em>
+    </div>
+  </div>
+</footer>
+
+<script>
+async function runPlayground() {
+  const btn = document.getElementById('run-btn');
+  const output = document.getElementById('playground-output');
+  const jsonToggle = document.getElementById('json-toggle');
+  const jsonPane = document.getElementById('mcp-json-pane');
+  const intent = document.getElementById('intent-select').value;
+
+  btn.disabled = true;
+  btn.textContent = 'Loading…';
+  output.classList.add('visible');
+  output.textContent = 'Fetching memory packet…';
+  jsonPane.classList.remove('visible');
+
+  const requestBody = { intent: intent, max_tokens: 16000 };
+
+  try {
+    const resp = await fetch('/api/playground', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+    });
+    const data = await resp.json();
+
+    if (data.error) {
+      output.textContent = 'Error: ' + data.error;
+    } else {
+      const sections = data.sections_included || [];
+      const summary = `── Memory Packet ──\nSections: ${sections.join(', ')}\nTokens: ${data.token_count}\nSource: ${data.source_version}\n${data.truncation_note ? 'Note: ' + data.truncation_note + '\n' : ''}\n── Packet (first 2000 chars) ──\n${(data.packet || '').substring(0, 2000)}${(data.packet || '').length > 2000 ? '\n\n… (truncated for display)' : ''}`;
+      output.textContent = summary;
+
+      // MCP JSON pane
+      const mcpRequest = {
+        jsonrpc: '2.0',
+        method: 'tools/call',
+        params: { name: 'librarian_context', arguments: requestBody },
+        id: 1
+      };
+      const mcpResponse = {
+        jsonrpc: '2.0',
+        result: {
+          content: [{
+            type: 'text',
+            text: JSON.stringify({
+              sections_included: data.sections_included,
+              token_count: data.token_count,
+              source_version: data.source_version,
+              truncation_note: data.truncation_note,
+              packet: '(content omitted for brevity)'
+            }, null, 2)
+          }]
+        },
+        id: 1
+      };
+      jsonPane.textContent = '// MCP Request\n' + JSON.stringify(mcpRequest, null, 2) + '\n\n// MCP Response\n' + JSON.stringify(mcpResponse, null, 2);
+      jsonToggle.style.display = 'inline';
+    }
+  } catch (err) {
+    output.textContent = 'Network error: ' + err.message + '\n\nThe hosted MCP endpoint may not be deployed yet. Install locally:\n  pip install librarian-mcp\n  python -m librarian_mcp';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Load Memory Packet';
+}
+
+function toggleMcpJson() {
+  const pane = document.getElementById('mcp-json-pane');
+  pane.classList.toggle('visible');
+  const btn = document.getElementById('json-toggle');
+  btn.textContent = pane.classList.contains('visible')
+    ? 'Hide MCP JSON'
+    : 'See the MCP JSON — Romulator 9000';
+}
+</script>
+
+</body>
+</html>
