@@ -1,0 +1,50 @@
+{
+  "hosting": [
+    {
+      "target": "librarian",
+      "public": "hosted",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" }
+          ]
+        },
+        {
+          "source": "index.html",
+          "headers": [
+            { "key": "Content-Type", "value": "text/html; charset=UTF-8" },
+            { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+          ]
+        },
+        {
+          "source": "**/*.html",
+          "headers": [
+            { "key": "Content-Type", "value": "text/html; charset=UTF-8" }
+          ]
+        },
+        {
+          "source": "**/*.@(js|mjs)",
+          "headers": [
+            { "key": "Content-Type", "value": "application/javascript; charset=UTF-8" },
+            { "key": "Cache-Control", "value": "max-age=31536000" }
+          ]
+        },
+        {
+          "source": "**/*.css",
+          "headers": [
+            { "key": "Content-Type", "value": "text/css; charset=UTF-8" },
+            { "key": "Cache-Control", "value": "max-age=31536000" }
+          ]
+        },
+        {
+          "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|ico)",
+          "headers": [
+            { "key": "Cache-Control", "value": "max-age=31536000" }
+          ]
+        }
+      ]
+    }
+  ]
+}

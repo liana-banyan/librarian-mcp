@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "lianabanyan-403dc"
+  },
+  "targets": {
+    "lianabanyan-403dc": {
+      "hosting": {
+        "librarian": [
+          "librarian-the2ndsecond"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
