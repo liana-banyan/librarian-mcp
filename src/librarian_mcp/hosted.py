@@ -256,8 +256,25 @@ async def playground_api(request: Request) -> JSONResponse:
     except Exception:
         return JSONResponse({"error": "Invalid JSON body"}, status_code=400)
 
+    if not isinstance(body, dict):
+        return JSONResponse({"error": "JSON body must be an object"}, status_code=400)
+
     intent = body.get("intent", "")
+    if not isinstance(intent, (str, list)) or (
+        isinstance(intent, list) and not all(isinstance(item, str) for item in intent)
+    ):
+        return JSONResponse(
+            {"error": "intent must be a string or a list of strings"},
+            status_code=400,
+        )
+
     max_tokens = body.get("max_tokens", 16000)
+    if isinstance(max_tokens, bool) or not isinstance(max_tokens, int) or max_tokens < 0:
+        return JSONResponse(
+            {"error": "max_tokens must be a non-negative integer"},
+            status_code=400,
+        )
+
     result = build_packet(intent=intent, max_tokens=max_tokens)
     return JSONResponse(result)
 
