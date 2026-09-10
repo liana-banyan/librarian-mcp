@@ -17,6 +17,7 @@ Runtime:
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Annotated, Any, Optional
 
@@ -88,8 +89,28 @@ def _load_text(path: str) -> str | None:
 
 
 def _extract_sections(text: str) -> list[str]:
-    """Extract markdown section headers from text."""
-    return [line.strip() for line in text.splitlines() if line.strip().startswith("#")]
+    """Extract section headers, excluding top-level Markdown fenced code blocks."""
+    sections: list[str] = []
+    fence = ""
+    for line in text.splitlines():
+        if fence:
+            # A closer uses the same character, at least the opening length,
+            # at most three leading spaces, and no trailing non-whitespace.
+            if re.fullmatch(r" {0,3}" + re.escape(fence[0]) + "{" + str(len(fence)) + r",}[ \t]*", line):
+                fence = ""
+            continue
+
+        opening = re.match(r" {0,3}(`{3,}|~{3,})(.*)$", line)
+        if opening:
+            marker, info = opening.groups()
+            # Backtick fence info strings cannot themselves contain backticks.
+            if marker[0] == "~" or "`" not in info:
+                fence = marker
+                continue
+
+        if line.strip().startswith("#"):
+            sections.append(line.strip())
+    return sections
 
 
 def _find_missing_phrases(canonical: str, candidate: str, phrases: list[str]) -> tuple[list[str], list[str]]:
