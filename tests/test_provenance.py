@@ -5,7 +5,41 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from librarian_mcp.server import prose_provenance
+import pytest
+
+from librarian_mcp.server import _extract_sections, prose_provenance
+
+
+@pytest.mark.parametrize("fence", ["```", "~~~", "````", "   ```"])
+def test_code_comment_change_is_not_section_drift(tmp_path: Path, fence: str) -> None:
+    canonical = f"# Guide\n\n{fence}python\n# Old comment\nprint(1)\n{fence}\n\n## Usage\n"
+    candidate = canonical.replace("# Old comment", "# New comment")
+    canonical_path = tmp_path / "canonical.md"
+    candidate_path = tmp_path / "candidate.md"
+    canonical_path.write_text(canonical, encoding="utf-8")
+    candidate_path.write_text(candidate, encoding="utf-8")
+
+    result = prose_provenance(str(canonical_path), str(candidate_path))
+
+    assert result["sections_removed"] == []
+    assert result["sections_added"] == []
+    assert result["drift_score"] == 0
+    assert result["verdict"] == "clean"
+
+
+@pytest.mark.parametrize(
+    ("code_block", "expected"),
+    [
+        ("````md\n```\n# In code\n`````\n## After", ["## After"]),
+        ("~~~\n```\n# In code\n~~~\n## After", ["## After"]),
+        ("```\n``` not a closing fence\n# In code\n```\n## After", ["## After"]),
+        ("```\n    ```\n# In code\n```\n## After", ["## After"]),
+        ("```\n# In unclosed code", []),
+        ("``` invalid`info\n## Not in code", ["## Not in code"]),
+    ],
+)
+def test_section_extraction_respects_fence_boundaries(code_block: str, expected: list[str]) -> None:
+    assert _extract_sections(code_block) == expected
 
 
 class TestProseProvenance:
