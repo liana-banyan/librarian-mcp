@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from librarian_mcp import cli
 from librarian_mcp.metrics import (
     opt_in_share,
     record_measurement,
@@ -126,3 +127,42 @@ class TestOptInShare:
     def test_default_is_off(self, tmp_metrics_dir: Path) -> None:
         s = summary()
         assert s["opt_in_share"] is False
+
+
+class TestJsonlImport:
+    def test_imports_valid_records_and_skips_malformed_lines(self, tmp_path: Path, tmp_metrics_dir: Path, capsys) -> None:
+        source = tmp_path / "measurements.jsonl"
+        source.write_text(
+            json.dumps({
+                "session_id": "s1", "vendor": "anthropic", "model": "haiku",
+                "condition": "HOT", "question_id": "Q1", "correct": True,
+                "input_tokens": 100, "output_tokens": 20, "cost_usd": 0.001, "latency_s": 1.2,
+            }) + "\n" + '{"session_id": "incomplete"}\n' + "not json\n",
+            encoding="utf-8",
+        )
+
+        cli.main(["--import", str(source)])
+
+        captured = capsys.readouterr()
+        assert captured.out == "Imported 1 records, skipped 2 malformed lines\n"
+        assert "line 2:" in captured.err
+        assert "line 3:" in captured.err
+        assert summary()["total_calls"] == 1
+
+    def test_rejects_boolean_token_counts(self, tmp_path: Path, tmp_metrics_dir: Path, capsys) -> None:
+        source = tmp_path / "measurements.jsonl"
+        source.write_text(
+            json.dumps({
+                "session_id": "s1", "vendor": "anthropic", "model": "haiku",
+                "condition": "HOT", "question_id": "Q1", "correct": True,
+                "input_tokens": True, "output_tokens": 20, "cost_usd": 0.001, "latency_s": 1.2,
+            }) + "\n",
+            encoding="utf-8",
+        )
+
+        cli.main(["--import", str(source)])
+
+        captured = capsys.readouterr()
+        assert captured.out == "Imported 0 records, skipped 1 malformed lines\n"
+        assert "input_tokens must be a non-negative integer" in captured.err
+        assert summary()["total_calls"] == 0
