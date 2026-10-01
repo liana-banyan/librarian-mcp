@@ -151,6 +151,9 @@ See [docs/continue-integration.md](docs/continue-integration.md).
 
 ## Development
 
+See [CI for contributions from forks](docs/contributor-ci.md) for the Python
+matrix, local checks, and workflow approval troubleshooting.
+
 ```bash
 pip install -e ".[dev,all]"
 ruff check src/ tests/          # lint
