@@ -401,7 +401,7 @@ When the P.S. of the Newmark / Seibel letters says *"I studied [Craigslist's res
 **Why:** Founder generated 63–86 innovations in single days during crisis periods. Constraints breed ingenuity. Demonstrates why C+20 scarcity drives innovation harder than VC abundance.
 
 ### Anecdotes-as-Proof (Credentials, Not Sob Stories)
-**Statement:** Every claim grounded in a Founder anecdote that lived-experienced the principle. Six core anecdotes: Jeep of Theseus, No Brakes, How to Learn to Swim, Intramural Giants, Rooster Tail (Kurt Ikard), Christmas Eve 1992.
+**Statement:** Every claim grounded in a Founder anecdote that lived-experienced the principle. Six core anecdotes: Jeep of Theseus, No Brakes, How to Learn to Swim, Intramural Giants, Rooster Tail (Kurt), Christmas Eve 1992.
 **Why:** "These aren't sob stories. These are credentials." Real stories as evidence of capability.
 
 ### Break Even 500 / Profitable 1,000
