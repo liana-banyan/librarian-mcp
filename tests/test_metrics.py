@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from librarian_mcp.cli import main as cli_main
 from librarian_mcp.metrics import (
     opt_in_share,
     record_measurement,
@@ -126,3 +127,41 @@ class TestOptInShare:
     def test_default_is_off(self, tmp_metrics_dir: Path) -> None:
         s = summary()
         assert s["opt_in_share"] is False
+
+
+class TestImportJsonlCli:
+    def test_cli_import_skips_malformed_and_aggregates(self, tmp_metrics_dir: Path, tmp_path: Path, capsys) -> None:
+        valid = {
+            "session_id": "s-import",
+            "vendor": "anthropic",
+            "model": "haiku",
+            "condition": "HOT",
+            "question_id": "Q-import",
+            "correct": True,
+            "input_tokens": 10,
+            "output_tokens": 2,
+            "cost_usd": 0.01,
+            "latency_s": 1.25,
+        }
+        source = tmp_path / "test_data.jsonl"
+        source.write_text(
+            json.dumps(valid)
+            + "\nnot-json\n"
+            + json.dumps({**valid, "input_tokens": True})
+            + "\n"
+            + json.dumps({**valid, "question_id": "Q-import-2", "correct": False})
+            + "\n",
+            encoding="utf-8",
+        )
+        rc = cli_main(["--import", str(source)])
+        assert rc == 0
+        out = capsys.readouterr()
+        assert "Imported 2 records, skipped 2 malformed lines" in out.out
+        assert "line 2" in out.err
+        result = summary()
+        assert result["total_calls"] == 2
+        assert result["per_vendor"]["anthropic"]["calls"] == 2
+
+    def test_cli_import_missing_file(self, tmp_metrics_dir: Path, tmp_path: Path) -> None:
+        missing = tmp_path / "absent.jsonl"
+        assert cli_main(["--import", str(missing)]) == 2

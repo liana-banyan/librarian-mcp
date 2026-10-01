@@ -42,6 +42,82 @@ def _save_config(config: dict[str, Any]) -> None:
 
 # ─── Record ───────────────────────────────────────────────────────────────────
 
+REQUIRED_FIELDS = (
+    "session_id",
+    "vendor",
+    "model",
+    "condition",
+    "question_id",
+    "correct",
+    "input_tokens",
+    "output_tokens",
+    "cost_usd",
+    "latency_s",
+)
+
+
+def _is_nonneg_int(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def _is_finite_nonneg_number(value: Any) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    return value >= 0 and value == value and value not in (float("inf"), float("-inf"))
+
+
+def _validate_measurement(record: Any) -> dict[str, Any] | None:
+    if not isinstance(record, dict):
+        return None
+    if any(field not in record for field in REQUIRED_FIELDS):
+        return None
+    if not all(isinstance(record[f], str) and record[f] for f in ("session_id", "vendor", "model", "condition", "question_id")):
+        return None
+    if not isinstance(record["correct"], bool):
+        return None
+    if not _is_nonneg_int(record["input_tokens"]) or not _is_nonneg_int(record["output_tokens"]):
+        return None
+    if not _is_finite_nonneg_number(record["cost_usd"]) or not _is_finite_nonneg_number(record["latency_s"]):
+        return None
+    return record
+
+
+def import_jsonl(path: Path) -> tuple[int, int]:
+    """Append validated JSONL measurements. Returns (imported, skipped)."""
+    imported = 0
+    skipped = 0
+    with path.open(encoding="utf-8") as fh:
+        for line_no, raw in enumerate(fh, 1):
+            stripped = raw.strip()
+            if not stripped:
+                continue
+            try:
+                payload = json.loads(stripped)
+            except json.JSONDecodeError:
+                print(f"warning: skipping malformed JSON on line {line_no}", file=__import__("sys").stderr)
+                skipped += 1
+                continue
+            record = _validate_measurement(payload)
+            if record is None:
+                print(f"warning: skipping invalid record on line {line_no}", file=__import__("sys").stderr)
+                skipped += 1
+                continue
+            record_measurement(
+                session_id=record["session_id"],
+                vendor=record["vendor"],
+                model=record["model"],
+                condition=record["condition"],
+                question_id=record["question_id"],
+                correct=record["correct"],
+                input_tokens=record["input_tokens"],
+                output_tokens=record["output_tokens"],
+                cost_usd=float(record["cost_usd"]),
+                latency_s=float(record["latency_s"]),
+            )
+            imported += 1
+    return imported, skipped
+
+
 def record_measurement(
     session_id: str,
     vendor: str,
