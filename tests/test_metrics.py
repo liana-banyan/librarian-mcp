@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from librarian_mcp.metrics import (
+    import_measurements,
     opt_in_share,
     record_measurement,
     summary,
@@ -126,3 +127,128 @@ class TestOptInShare:
     def test_default_is_off(self, tmp_metrics_dir: Path) -> None:
         s = summary()
         assert s["opt_in_share"] is False
+
+
+class TestImportMeasurements:
+    def test_imports_valid_lines_and_reports_malformed_lines(self, tmp_path, tmp_metrics_dir, capsys):
+        source = tmp_path / "results.jsonl"
+        valid_hot = {
+            "session_id": "import-session",
+            "vendor": "anthropic",
+            "model": "claude-haiku-4-5",
+            "condition": "HOT",
+            "question_id": "Q1",
+            "correct": True,
+            "input_tokens": 1000,
+            "output_tokens": 200,
+            "cost_usd": 0.001,
+            "latency_s": 1.2,
+        }
+        valid_cold = {**valid_hot, "condition": "COLD", "correct": False, "question_id": "Q2"}
+        invalid_boolean = {**valid_hot, "correct": "yes"}
+
+        source.write_text(
+            "\n".join([
+                json.dumps(valid_hot),
+                "{oops",
+                json.dumps(invalid_boolean),
+                json.dumps(valid_cold),
+            ]) + "\n",
+            encoding="utf-8",
+        )
+
+        imported, skipped = import_measurements(source)
+        assert (imported, skipped) == (2, 2)
+
+        captured = capsys.readouterr()
+        assert "Skipping malformed line 2" in captured.err
+        assert "Skipping malformed line 3" in captured.err
+        assert "Expecting property name enclosed in double quotes" in captured.err
+        assert "correct must be a boolean" in captured.err
+
+        stored = [
+            json.loads(row)
+            for row in (tmp_metrics_dir / "metrics.jsonl").read_text(encoding="utf-8").splitlines()
+        ]
+        assert len(stored) == 2
+        assert {row["condition"] for row in stored} == {"HOT", "COLD"}
+        assert all(row["session_id"] == "import-session" for row in stored)
+
+        aggregate = summary()
+        assert aggregate["total_calls"] == 2
+        assert aggregate["per_vendor"]["anthropic"]["calls"] == 2
+
+    def test_rejects_invalid_values_and_missing_fields(self, tmp_path, tmp_metrics_dir, capsys):
+        source = tmp_path / "results.jsonl"
+        valid = {
+            "session_id": "import-session",
+            "vendor": "google",
+            "model": "gemini-flash",
+            "condition": "HOT",
+            "question_id": "Q1",
+            "correct": True,
+            "input_tokens": 1000,
+            "output_tokens": 200,
+            "cost_usd": 0.001,
+            "latency_s": 1.2,
+        }
+        negative_tokens = {**valid, "input_tokens": -1}
+        missing_cost = {key: value for key, value in valid.items() if key != "cost_usd"}
+        nonfinite_latency = {**valid, "latency_s": float("inf")}
+
+        source.write_text(
+            "\n".join([
+                json.dumps(negative_tokens),
+                json.dumps(missing_cost),
+                json.dumps(nonfinite_latency),
+            ]) + "\n",
+            encoding="utf-8",
+        )
+
+        imported, skipped = import_measurements(source)
+        assert (imported, skipped) == (0, 3)
+        assert not (tmp_metrics_dir / "metrics.jsonl").exists()
+
+        captured = capsys.readouterr()
+        assert "input_tokens must be a nonnegative integer" in captured.err
+        assert "missing fields: cost_usd" in captured.err
+        assert "latency_s must be a finite nonnegative number" in captured.err
+
+    def test_cli_import_prints_summary(self, tmp_path, tmp_metrics_dir, capsys, monkeypatch):
+        source = tmp_path / "results.jsonl"
+        valid = {
+            "session_id": "cli-session",
+            "vendor": "anthropic",
+            "model": "claude-haiku-4-5",
+            "condition": "HOT",
+            "question_id": "Q1",
+            "correct": True,
+            "input_tokens": 1000,
+            "output_tokens": 200,
+            "cost_usd": 0.001,
+            "latency_s": 1.2,
+        }
+        invalid = {**valid, "correct": "yes"}
+        source.write_text(
+            json.dumps(valid) + "\n" + json.dumps(invalid) + "\n",
+            encoding="utf-8",
+        )
+
+        monkeypatch.setattr("sys.argv", ["librarian-mcp", "--import", str(source)])
+        from librarian_mcp import cli
+
+        cli.main()
+        captured = capsys.readouterr()
+        assert "Imported 1 records, skipped 1 malformed lines" in captured.out
+        assert "Skipping malformed line 2" in captured.err
+        assert summary()["total_calls"] == 1
+
+    def test_default_entry_point_still_runs_the_server(self, monkeypatch):
+        calls = []
+        from librarian_mcp import server
+        monkeypatch.setattr(server, "main", lambda: calls.append("started"))
+        monkeypatch.setattr("sys.argv", ["librarian-mcp"])
+
+        from librarian_mcp import cli
+        cli.main()
+        assert calls == ["started"]

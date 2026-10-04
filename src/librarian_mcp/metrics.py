@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import datetime
 import json
+import math
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -71,6 +73,104 @@ def record_measurement(
     }
     with open(METRICS_PATH, "a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
+
+
+# ─── Import ────────────────────────────────────────────────────────────────────
+
+def _validate_import_measurement(record: Any) -> str | None:
+    """Return a human-readable import error, or None for a valid record."""
+    required_text_fields = (
+        "session_id",
+        "vendor",
+        "model",
+        "condition",
+        "question_id",
+    )
+    required_typed_fields = (
+        "correct",
+        "input_tokens",
+        "output_tokens",
+        "cost_usd",
+        "latency_s",
+    )
+
+    if not isinstance(record, dict):
+        return "record must be a JSON object"
+
+    missing = [field for field in required_text_fields if field not in record]
+    missing.extend(field for field in required_typed_fields if field not in record)
+    if missing:
+        return f"missing fields: {', '.join(missing)}"
+
+    empty_text_fields = [
+        field
+        for field in required_text_fields
+        if not isinstance(record[field], str) or not record[field]
+    ]
+    if empty_text_fields:
+        return f"text fields must be non-empty strings: {', '.join(empty_text_fields)}"
+
+    if not isinstance(record["correct"], bool):
+        return "correct must be a boolean"
+
+    for field in ("input_tokens", "output_tokens"):
+        value = record[field]
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            return f"{field} must be a nonnegative integer"
+
+    for field in ("cost_usd", "latency_s"):
+        value = record[field]
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return f"{field} must be a finite nonnegative number"
+        if value < 0 or not math.isfinite(value):
+            return f"{field} must be a finite nonnegative number"
+
+    return None
+
+
+def import_measurements(path: str | Path) -> tuple[int, int]:
+    """Import a JSONL benchmark file line by line.
+
+    Returns ``(imported, skipped)``. Malformed lines are reported to stderr without
+    aborting the import.
+    """
+    imported = 0
+    skipped = 0
+    source = Path(path)
+
+    with source.open("r", encoding="utf-8") as jsonl_file:
+        for line_number, raw_line in enumerate(jsonl_file, start=1):
+            if not raw_line.strip():
+                continue
+
+            try:
+                measurement: Any = json.loads(raw_line)
+            except json.JSONDecodeError as exc:
+                skipped += 1
+                print(f"Skipping malformed line {line_number} in {source}: {exc.msg}", file=sys.stderr)
+                continue
+
+            error = _validate_import_measurement(measurement)
+            if error is not None:
+                skipped += 1
+                print(f"Skipping malformed line {line_number} in {source}: {error}", file=sys.stderr)
+                continue
+
+            record_measurement(
+                session_id=measurement["session_id"],
+                vendor=measurement["vendor"],
+                model=measurement["model"],
+                condition=measurement["condition"],
+                question_id=measurement["question_id"],
+                correct=measurement["correct"],
+                input_tokens=measurement["input_tokens"],
+                output_tokens=measurement["output_tokens"],
+                cost_usd=measurement["cost_usd"],
+                latency_s=measurement["latency_s"],
+            )
+            imported += 1
+
+    return imported, skipped
 
 
 # ─── Summary ──────────────────────────────────────────────────────────────────

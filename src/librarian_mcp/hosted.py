@@ -24,12 +24,13 @@ import logging
 import os
 import time
 from collections import defaultdict
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any, Optional, cast
 
 from mcp.server.fastmcp import FastMCP
-from mcp.server.fastmcp.server import TransportSecuritySettings
+from mcp.server.fastmcp.server import TransportSecuritySettings  # type: ignore[attr-defined]
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -54,10 +55,16 @@ RATE_LIMIT = int(os.environ.get("RATE_LIMIT", "60"))
 _request_log: dict[str, list[float]] = defaultdict(list)
 
 
+def _client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Any) -> Response:
-        forwarded = request.headers.get("x-forwarded-for", "")
-        client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
+        client_ip = _client_ip(request)
         now = time.time()
         window = _request_log[client_ip]
         cutoff = now - 60.0
@@ -70,7 +77,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 headers={"Retry-After": "60"},
             )
         _request_log[client_ip].append(now)
-        return await call_next(request)
+        return cast(Response, await call_next(request))
 
 
 # ─── Referrer/UA logging middleware ───────────────────────────────────────────
@@ -78,10 +85,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 class RequestLogMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Any) -> Response:
         start = time.time()
-        response = await call_next(request)
+        response = cast(Response, await call_next(request))
         elapsed = time.time() - start
-        forwarded = request.headers.get("x-forwarded-for", "")
-        real_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")
+        real_ip = _client_ip(request)
         logger.info(json.dumps({
             "path": str(request.url.path),
             "method": request.method,
@@ -284,7 +290,7 @@ mcp_app = hosted_mcp.streamable_http_app()
 
 
 @asynccontextmanager
-async def lifespan(app):
+async def lifespan(app: Starlette) -> AsyncGenerator[None, None]:
     async with hosted_mcp.session_manager.run():
         yield
 
