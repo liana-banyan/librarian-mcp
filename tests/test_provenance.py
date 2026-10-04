@@ -52,6 +52,34 @@ class TestProseProvenance:
         assert "Cardboard boots" in result["keystones_missing"]
         assert result["drift_score"] > 0
 
+    def test_removed_ratified_keystone_is_not_clean(self, tmp_path: Path) -> None:
+        # Keystone 6 in preload/founder_voice/rhetorical_keystones.md.
+        keystone = "Nothing about us without us."
+        canonical = (
+            "# Governance\n\n"
+            f"The community participates in each decision. {keystone} "
+            "Contributors review proposals together before any changes are approved.\n"
+        )
+        candidate = canonical.replace(f"{keystone} ", "")
+        canonical_path = tmp_path / "canonical.md"
+        candidate_path = tmp_path / "candidate.md"
+        canonical_path.write_text(canonical, encoding="utf-8")
+        candidate_path.write_text(candidate, encoding="utf-8")
+
+        result = prose_provenance(
+            canonical_path=str(canonical_path),
+            candidate_path=str(candidate_path),
+            keystones=json.dumps([keystone]),
+        )
+
+        assert result["keystones_missing"] == [keystone]
+        assert result["drift_score"] > 0
+        assert result["verdict"] != "clean"
+        # Removing only the phrase must trigger drift without structural changes.
+        assert result["sections_added"] == result["sections_removed"] == []
+        assert result["paragraph_delta"] == 0
+        assert 0.5 <= result["length_ratio"] <= 2.0
+
     def test_canonical_numbers_missing_detected(self, tmp_path: Path) -> None:
         canonical = "# Stats\n\nWe have 2,267 innovations and 83.3% creator keep.\n"
         candidate = "# Stats\n\nWe have many innovations and fair creator keep.\n"
