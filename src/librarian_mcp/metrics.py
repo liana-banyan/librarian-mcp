@@ -55,7 +55,6 @@ def record_measurement(
     latency_s: float,
 ) -> None:
     """Append one measurement to the local JSONL file."""
-    _ensure_dir()
     record = {
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "session_id": session_id,
@@ -69,8 +68,11 @@ def record_measurement(
         "cost_usd": cost_usd,
         "latency_s": latency_s,
     }
+    # Reject NaN and infinities before creating or changing the metrics store.
+    payload = json.dumps(record, allow_nan=False) + "\n"
+    _ensure_dir()
     with open(METRICS_PATH, "a", encoding="utf-8") as f:
-        f.write(json.dumps(record) + "\n")
+        f.write(payload)
 
 
 # ─── Summary ──────────────────────────────────────────────────────────────────
