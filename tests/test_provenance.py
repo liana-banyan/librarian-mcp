@@ -101,3 +101,19 @@ class TestProseProvenance:
             candidate_path=str(tmp_path / "b.md"),
         )
         assert result["version"] == "v0.2.0"
+
+    def test_removed_rhetorical_keystone_detected(self, tmp_path: Path) -> None:
+        keystone = "Help each other help ourselves."
+        canonical = "# Manifesto\n\n" + keystone + "\n\nSome other canonical text here.\n"
+        candidate = "# Manifesto\n\nWe must work together for common goals.\n\nSome other revised text here.\n"
+        (tmp_path / "canonical.md").write_text(canonical, encoding="utf-8")
+        (tmp_path / "candidate.md").write_text(candidate, encoding="utf-8")
+
+        result = prose_provenance(
+            canonical_path=str(tmp_path / "canonical.md"),
+            candidate_path=str(tmp_path / "candidate.md"),
+            keystones=json.dumps([keystone]),
+        )
+        assert keystone in result["keystones_missing"]
+        assert result["drift_score"] > 0
+        assert result["verdict"] != "clean"
